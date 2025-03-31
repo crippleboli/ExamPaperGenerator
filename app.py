@@ -31,7 +31,6 @@ def generate():
 
 @app.route('/generate_full', methods=['POST'])
 def generate_full():
-    """修改点：完整试卷生成逻辑优化"""
     try:
         req_data = {
             "subject": request.form['subject'],

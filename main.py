@@ -2,19 +2,57 @@ import requests
 import json
 import time
 
-# =================配置区域=================
+# =================配置区域========================================================
 API_KEY = "sk-6e6d266f347645d7b3bcca7370cf7a85"
 BASE_URL = "https://api.deepseek.com/v1"
 ENDPOINT = "/chat/completions"
+# 最大重试次数
 MAX_RETRIES = 3
-# =========================================
 
 headers = {
     "Authorization": f"Bearer {API_KEY}",
     "Content-Type": "application/json"
 }
 
+# ================================================================================
 
+
+# =================获取示例问题、答案和解析区域===========================================
+def _get_example_question(q_type):
+    # 定义不同题型的示例问题
+    examples = {
+        "选择题": "五四运动爆发于？\n选项：\nA. 1911\nB. 1919\nC. 1921\nD. 1937",
+        "填空题": "南京大屠杀发生在____年",
+        "计算题": "(1) 求函数f(x)=x²的导数?\n(2) 计算x=2时的导数值"
+    }
+    # 根据传入的题型返回对应的示例问题，如果未找到则返回默认的示例问题
+    return examples.get(q_type, "示例问题")
+
+
+def _get_example_answer(q_type):
+    # 定义不同题型的示例答案
+    answers = {
+        "选择题": "B",
+        "填空题": "1937",
+        "计算题": "(1) 2x\n(2) 4"
+    }
+    # 根据传入的题型返回对应的示例答案，如果未找到则返回默认的示例答案
+    return answers.get(q_type, "示例答案")
+
+
+def _get_example_analysis(q_type):
+    # 定义不同题型的示例解析
+    analyses = {
+        "选择题": "1919年巴黎和会外交失败直接引发五四运动",
+        "填空题": "根据历史事件时间线确定",
+        "计算题": "使用基本导数公式计算"
+    }
+    # 根据传入的题型返回对应的示例解析，如果未找到则返回默认的示例解析
+    return analyses.get(q_type, "示例解析")
+# =====================================================================================
+
+
+# =================构建提示信息区域========================================================
 def build_prompt(subject, difficulty, question_type, num):
     type_rules = {
         "选择题": f"""必须包含4个选项，格式示例：
@@ -32,13 +70,6 @@ def build_prompt(subject, difficulty, question_type, num):
             "答案：1939\n"
             "禁止出现任何选项标识"
         ),
-        "简答题": (
-            "要求答案结构完整，包含至少3个要点\n"
-            "示例：\n"
-            "题目：简述工业革命的影响\n"
-            "答案：1. 促进生产力发展... 2. 改变社会结构... 3. 推动城市化进程..."
-        ),
-        "判断题": "答案只能为「正确」或「错误」",
         "计算题": (
             "必须满足以下要求：\n"
             "1. 包含至少两个带编号的小问，格式示例：\n"
@@ -56,7 +87,6 @@ def build_prompt(subject, difficulty, question_type, num):
             "(1) 导数为f'(x)=3x²-3，令f'(x)=0得x=±1...\n"
             "(2) 验证连续性、可导性及端点值相等..."
         ),
-        "编程题": "需包含代码示例和测试用例"
     }
 
     return f"""【超严格指令】生成{num}道[{subject}]{question_type}（难度：{difficulty}）：
@@ -66,26 +96,31 @@ def build_prompt(subject, difficulty, question_type, num):
 {{
     "questions": [
         {{
-            "question": "函数f(x)=x²的导数是？\\n选项：\\nA. 2x\\nB. x\\nC. 1\\nD. 0",
-            "answer": "A",
-            "analysis": "根据导数公式求得"
+            "question": "{_get_example_question(question_type)}",
+            "answer": "{_get_example_answer(question_type)}",
+            "analysis": "{_get_example_analysis(question_type)}"
         }}
     ]
 }}"""
 
+# =============================================================================================
 
+
+# =================json清洗验证=================================================================
 def clean_json_content(content):
-    """清洗API返回内容"""
+    # 清洗json:去除多余的代码块标记和首尾空白。
     return content.replace('```json', '').replace('```', '').strip()
 
 
 def validate_json(content):
-    """验证JSON完整性"""
+    # 验证JSON完整性
     try:
         json.loads(content)
         return True
     except:
         return False
+# =============================================================================================
+
 
 
 def generate_questions(subject, difficulty, question_type, num):
@@ -117,8 +152,10 @@ def generate_questions(subject, difficulty, question_type, num):
                 print(f"[Attempt {attempt + 1}] Invalid JSON")
                 continue
 
+            # 将验证通过的 JSON 字符串解析为 Python 对象
             result = json.loads(cleaned)
 
+            # 无效选择题筛选
             if question_type == "选择题":
                 valid_questions = []
                 for q in result.get('questions', []):
@@ -138,8 +175,8 @@ def generate_questions(subject, difficulty, question_type, num):
     return None
 
 
+# ==========测试区域=================================================================================
 def save_results(data):
-    """原有保存逻辑保持不变"""
     try:
         with open("output.txt", "w", encoding="utf-8") as f:
             for idx, q in enumerate(data['questions'], 1):
@@ -154,7 +191,7 @@ def save_results(data):
         print(f"保存失败: {str(e)}")
         return False
 
-
+#  存储为txt: 测试 main.py 使用
 if __name__ == "__main__":
     print("试卷生成系统启动...")
     result = generate_questions("高等数学", "中等", "选择题", 3)
@@ -163,3 +200,4 @@ if __name__ == "__main__":
         print("保存成功")
     else:
         print("生成失败")
+# =================================================================================================
