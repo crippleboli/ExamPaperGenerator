@@ -5,33 +5,17 @@ app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
 
 
+
+# =========== 定义根路由，用于渲染主页 ===========
 @app.route('/')
 def index():
     return render_template('index.html')
 
-
-@app.route('/generate', methods=['POST'])
-def generate():
-    try:
-        params = {
-            "subject": request.form.get('subject', '高等数学'),
-            "difficulty": request.form.get('difficulty', '中等'),
-            "question_type": request.form.get('question_type', '选择题'),
-            "num": int(request.form.get('num', 3))
-        }
-
-        result = generate_questions(**params)
-        return jsonify({
-            "status": "success" if result else "error",
-            "data": result.get('questions', []) if result else []
-        })
-    except Exception as e:
-        return jsonify({"status": "error", "msg": str(e)})
-
-
+# =========== 定义生成完整试卷的路由 =======================================================================================
 @app.route('/generate_full', methods=['POST'])
 def generate_full():
     try:
+        # 从表单获取(科目 难度  选择题数量 填空题数量 计算题题数量)
         req_data = {
             "subject": request.form['subject'],
             "difficulty": request.form['difficulty'],
@@ -40,6 +24,7 @@ def generate_full():
             "calc_num": int(request.form.get('calc_num', 0))
         }
 
+        # 初始化试卷结构(科目 难度 总分)
         paper = {
             "meta": {
                 "subject": req_data['subject'],
@@ -49,7 +34,7 @@ def generate_full():
             "sections": []
         }
 
-        # 生成选择题（新增参数严格校验）
+        # 生成选择题
         if req_data['choice_num'] > 0:
             choice_result = generate_questions(
                 req_data['subject'],
@@ -64,7 +49,6 @@ def generate_full():
                     "score": 5
                 })
 
-        # 其他题型生成逻辑保持不变...
         # 填空题
         if req_data['blank_num'] > 0:
             blank_result = generate_questions(
@@ -94,7 +78,7 @@ def generate_full():
                     "questions": calc_result.get('questions', []),
                     "score": 10
                 })
-
+        # 以JSON格式返回生成的试卷信息
         return jsonify({"status": "success", "data": paper})
 
     except Exception as e:

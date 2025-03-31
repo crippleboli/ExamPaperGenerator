@@ -155,7 +155,7 @@ def generate_questions(subject, difficulty, question_type, num):
             # 将验证通过的 JSON 字符串解析为 Python 对象
             result = json.loads(cleaned)
 
-            # 无效选择题筛选
+            # 无效选择题筛选   只筛选了选择题所以只有选择题有提示信息
             if question_type == "选择题":
                 valid_questions = []
                 for q in result.get('questions', []):
