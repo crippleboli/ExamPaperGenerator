@@ -1,0 +1,36 @@
+body {
+    background-color: #f8f9fa;
+}
+
+/* 修改点：确保选择题选项换行 */
+.question-item p {
+    white-space: pre-wrap;
+    line-height: 2;
+}
+
+.section {
+    background: white;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.badge {
+    font-size: 1rem;
+    padding: 0.5em 0.8em;
+}
+
+.show-answer {
+    margin-top: 1rem;
+    width: 120px;
+}
+
+.answer-section {
+    margin-top: 1rem;
+    transition: all 0.3s ease;
+}
+
+#loading {
+    padding: 2rem 0;
+}
