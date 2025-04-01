@@ -1,11 +1,24 @@
 body {
     background-color: #f8f9fa;
+    color: #333;
 }
 
-/* 修改点：确保选择题选项换行 */
+/* 表单卡片样式 */
+.card {
+    border: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* 确保选择题选项换行 */
 .question-item p {
     white-space: pre-wrap;
     line-height: 2;
+    font-size: 1.1rem;
 }
 
 .section {
@@ -13,7 +26,7 @@ body {
     padding: 2rem;
     margin-bottom: 2rem;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .badge {
@@ -24,6 +37,11 @@ body {
 .show-answer {
     margin-top: 1rem;
     width: 120px;
+    transition: all 0.3s ease;
+}
+
+.show-answer:hover {
+    transform: translateY(-2px);
 }
 
 .answer-section {
@@ -33,4 +51,35 @@ body {
 
 #loading {
     padding: 2rem 0;
+}
+
+/* 表单元素样式 */
+.form-label {
+    font-weight: 600;
+}
+
+.form-select,
+.form-control {
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-select:focus,
+.form-control:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* 按钮样式 */
+.btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+    transform: translateY(-2px);
 }

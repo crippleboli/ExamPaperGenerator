@@ -1,19 +1,29 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>试卷生成系统</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+    </style>
 </head>
+
 <body>
     <div class="container mt-5">
-        <h1 class="mb-4">试卷生成系统</h1>
+        <div class="text-center mb-4">
+            <h1 class="display-4">试卷生成系统</h1>
+            <p class="lead">轻松生成各类试卷</p>
+        </div>
 
-        <!-- 修改点：表单字段增加required属性 -->
-        <div class="card mb-4">
+        <div class="card mb-4 shadow">
             <div class="card-body">
                 <form id="fullPaperForm">
-                    <div class="row g-3">
+                    <div class="row g-3 align-items-center justify-content-center">
                         <div class="col-md-3">
                             <label class="form-label">科目</label>
                             <select class="form-select" name="subject" required>
@@ -32,26 +42,30 @@
                         </div>
                         <div class="col-md-2">
                             <label class="form-label">选择题</label>
-                            <input type="number" class="form-control"
-                                   name="choice_num" value="5" min="0" max="20" required>
+                            <input type="number" class="form-control" name="choice_num" value="5" min="0" max="20"
+                                required>
                         </div>
                         <div class="col-md-2">
                             <label class="form-label">填空题</label>
-                            <input type="number" class="form-control"
-                                   name="blank_num" value="3" min="0" max="15" required>
+                            <input type="number" class="form-control" name="blank_num" value="3" min="0" max="15"
+                                required>
                         </div>
                         <div class="col-md-2">
                             <label class="form-label">计算题</label>
-                            <input type="number" class="form-control"
-                                   name="calc_num" value="2" min="0" max="10" required>
+                            <input type="number" class="form-control" name="calc_num" value="2" min="0" max="10"
+                                required>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary mt-3">生成完整试卷</button>
+                    <div class="text-center mt-3">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-file-alt"></i> 生成完整试卷
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
 
-        <div id="paperContainer" class="card">
+        <div id="paperContainer" class="card shadow">
             <div class="card-body">
                 <div id="loading" class="d-none text-center">
                     <div class="spinner-border text-primary" role="status"></div>
@@ -64,9 +78,8 @@
 
     <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script>
-        // 修改点：处理选择题换行显示
-        $(document).ready(function() {
-            $('#fullPaperForm').submit(function(e) {
+        $(document).ready(function () {
+            $('#fullPaperForm').submit(function (e) {
                 e.preventDefault();
                 $('#loading').removeClass('d-none');
                 $('#paperContent').empty();
@@ -75,28 +88,29 @@
                     type: 'POST',
                     url: '/generate_full',
                     data: $(this).serialize(),
-                    success: function(response) {
-                        if(response.status === 'success') {
+                    success: function (response) {
+                        if (response.status === 'success') {
                             let html = `
-                                <h4>${response.data.meta.subject}试卷（${response.data.meta.difficulty}）</h4>
-                                <div class="mb-4">
+                                <h4 class="text-center">${response.data.meta.subject}试卷（${response.data.meta.difficulty}）</h4>
+                                <div class="text-center mb-4">
                                     <span class="badge bg-primary">总分：${response.data.meta.total_score}分</span>
                                 </div>`;
 
                             response.data.sections.forEach(section => {
                                 html += `<div class="section">
-                                    <h5>${section.type}（每题${section.score}分）</h5>`;
+                                    <h5 class="border-bottom pb-2">${section.type}（每题${section.score}分）</h5>`;
 
                                 section.questions.forEach((q, index) => {
-                                    // 特别处理选择题的换行
                                     const questionContent = section.type === '选择题'
                                         ? q.question.replace(/\n/g, '<br>')
                                         : q.question;
 
                                     html += `
                                         <div class="question-item">
-                                            <p>${index+1}. ${questionContent}</p>
-                                            <button class="show-answer btn btn-sm btn-secondary">显示答案</button>
+                                            <p>${index + 1}. ${questionContent}</p>
+                                            <button class="show-answer btn btn-sm btn-secondary">
+                                                <i class="fas fa-eye"></i> 显示答案
+                                            </button>
                                             <div class="answer-section" style="display:none;">
                                                 <div class="card mt-2">
                                                     <div class="card-body">
@@ -120,11 +134,19 @@
                 });
             });
 
-            $(document).on('click', '.show-answer', function() {
+            $(document).on('click', '.show-answer', function () {
                 $(this).next('.answer-section').toggle();
-                $(this).text($(this).text() === '显示答案' ? '隐藏答案' : '显示答案');
+                const icon = $(this).find('i');
+                if (icon.hasClass('fa-eye')) {
+                    icon.removeClass('fa-eye').addClass('fa-eye-slash');
+                    $(this).find('span').text('隐藏答案');
+                } else {
+                    icon.removeClass('fa-eye-slash').addClass('fa-eye');
+                    $(this).find('span').text('显示答案');
+                }
             });
         });
     </script>
 </body>
+
 </html>
