@@ -39,9 +39,13 @@ knowledge_base = {
 def _get_example_question(q_type):
     # 定义不同题型的示例问题
     examples = {
-        "选择题": "五四运动爆发于？\n选项：\nA. 1911\nB. 1919\nC. 1921\nD. 1937",
+        "选择题": "五四运动爆发于？ "
+                  "A. 1911 "
+                  "B. 1919 "
+                  "C. 1921 "
+                  "D. 1937",
         "填空题": "南京大屠杀发生在____年",
-        "计算题": "(1) 求函数f(x)=x²的导数?\n(2) 计算x=2时的导数值"
+        "计算题": "(1) 求函数f(x)=x²的导数? (2) 计算x=2时的导数值"
     }
     # 根据传入的题型返回对应的示例问题，如果未找到则返回默认的示例问题
     return examples.get(q_type, "示例问题")
@@ -52,7 +56,7 @@ def _get_example_answer(q_type):
     answers = {
         "选择题": "B",
         "填空题": "1937",
-        "计算题": "(1) 2x\n(2) 4"
+        "计算题": "(1) 2x (2) 4"
     }
     # 根据传入的题型返回对应的示例答案，如果未找到则返回默认的示例答案
     return answers.get(q_type, "示例答案")
@@ -80,7 +84,7 @@ def _get_difficulty_criteria(subject, question_type, difficulty):
 # =================构建提示信息区域========================================================
 def build_prompt(subject, difficulty, question_type, num):
     type_rules = {
-        "选择题": f"""必须包含4个选项，格式示例：
+        "选择题": f"""必须包含4个选项，每个选项以字母A、B、C、D开头，且所有选项内容必须包含在question字段中，不允许使用单独的options字段，格式示例：
                 题目：[题干]（以？结尾）
                 选项：
                 A. [内容]
@@ -118,9 +122,9 @@ def build_prompt(subject, difficulty, question_type, num):
     }
 
     return f"""【超严格指令】生成{num}道[{subject}]{question_type}（难度：{difficulty}）：
-1. 返回严格JSON格式，包含question/answer/analysis
+1. 返回严格JSON格式，包含且只包含question/answer/analysis
 2. {type_rules.get(question_type, '')}
-3. 示例：
+3. 严格示例：
 {{
     "questions": [
         {{
@@ -157,7 +161,7 @@ def generate_questions(subject, difficulty, question_type, num):
         "messages": [{"role": "user", "content": build_prompt(subject, difficulty, question_type, num)}],
         "stream": False,
         "temperature": 0.7,
-        "max_tokens": 2000
+        "max_tokens": 5000
     }
 
     for attempt in range(MAX_RETRIES):
@@ -174,10 +178,12 @@ def generate_questions(subject, difficulty, question_type, num):
                 continue
 
             content = response.json()['choices'][0]['message']['content']
+            # 新增：打印原始响应内容
+            print(f"[Attempt {attempt + 1}] Raw response content: {content}")
             cleaned = clean_json_content(content)
 
             if not validate_json(cleaned):
-                print(f"[Attempt {attempt + 1}] Invalid JSON")
+                print(f"[Attempt {attempt + 1}] Invalid JSON: {cleaned}")
                 continue
 
             # 将验证通过的 JSON 字符串解析为 Python 对象
